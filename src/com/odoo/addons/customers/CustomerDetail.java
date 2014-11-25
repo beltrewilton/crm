@@ -19,7 +19,6 @@ import com.odoo.util.drawer.DrawerItem;
 
 public class CustomerDetail extends BaseFragment {
 	private View mView = null;
-	Context mContext = null;
 	private Integer mId = null;
 	private OForm mForm = null;
 	private Boolean mEditMode = false;
@@ -29,15 +28,13 @@ public class CustomerDetail extends BaseFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		initArgs();
-		mContext = getActivity();
 		setHasOptionsMenu(true);
-		mView = inflater.inflate(R.layout.partner_detail, container, false);
+		mView = inflater.inflate(R.layout.customer_detail, container, false);
 		return mView;
 	}
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
 		init();
 	}
 
@@ -71,12 +68,5 @@ public class CustomerDetail extends BaseFragment {
 	public List<DrawerItem> drawerMenus(Context context) {
 		return null;
 	}
-
-	@Override
-	public boolean onBackPressed() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 
 }

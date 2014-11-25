@@ -23,12 +23,18 @@
         <item name="background">@color/actionbar_bg_color</item>
     </style>
 
-    <style name="ProfileActivityTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="DetailActivity" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:windowTranslucentStatus">@bool/fit_to_window_height</item>
+    </style>
+
+    <style name="DetailActivity.Light" parent="Theme.AppCompat.Light">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="windowActionBarOverlay">true</item>
     </style>
 
 </resources>

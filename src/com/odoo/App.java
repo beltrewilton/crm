@@ -129,6 +129,7 @@ public class App extends Application {
 
 	public boolean appOnTop() {
 		ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		@SuppressWarnings("deprecation")
 		List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
 		ComponentName componentInfo = taskInfo.get(0).topActivity;
 		if (componentInfo.getPackageName().equalsIgnoreCase(getPackageName())) {

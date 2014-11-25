@@ -21,7 +21,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.odoo.addons.crm.model.CRMPhoneCall;
-import com.odoo.addons.crm.providers.crm.CRMProvider;
 import com.odoo.addons.crm.providers.crm.PhoneCallProvider;
 import com.odoo.crm.R;
 import com.odoo.orm.OColumn;
@@ -61,7 +60,7 @@ public class CRMPhoneCalls extends BaseFragment implements
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		// setHasSwipeRefreshView(view, R.id.swipe_container, this);
+		setHasSwipeRefreshView(view, R.id.swipe_container, this);
 		setHasSyncStatusObserver(TAG, this, db());
 		checkArguments();
 		mListControl = (ListView) view.findViewById(R.id.listRecords);
@@ -167,17 +166,11 @@ public class CRMPhoneCalls extends BaseFragment implements
 	@Override
 	public void onRefresh() {
 		if (app().inNetwork()) {
-			scope.main().requestSync(CRMProvider.AUTHORITY);
+			scope.main().requestSync(PhoneCallProvider.AUTHORITY);
 		} else {
 			hideRefreshingProgress();
 			Toast.makeText(mContext, _s(R.string.no_connection),
 					Toast.LENGTH_LONG).show();
 		}
-	}
-
-	@Override
-	public boolean onBackPressed() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }

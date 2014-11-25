@@ -77,7 +77,7 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		if (mTouch != null)
 			mTouch.setSwipeableView(mListControl, this);
 		mAdapter = new OCursorListAdapter(mContext, null,
-				R.layout.partners_item_layout);
+				R.layout.customer_item_layout);
 		mListControl.setAdapter(mAdapter);
 		mListControl.setOnItemClickListener(this);
 		mAdapter.setOnRowViewClickListener(R.id.user_location, this);
@@ -132,12 +132,18 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		Cursor cr = (Cursor) mAdapter.getItem(position);
 		int _id = cr.getInt(cr.getColumnIndex(OColumn.ROW_ID));
 		int record_id = cr.getInt(cr.getColumnIndex("id"));
-		CustomerDetail resDetail = new CustomerDetail();
 		Bundle bundle = new Bundle();
 		bundle.putInt(OColumn.ROW_ID, _id);
 		bundle.putInt("id", record_id);
-		resDetail.setArguments(bundle);
-		startFragment(resDetail, true);
+		
+		Intent detail = new Intent(getActivity(), CustomerDetails.class);
+		detail.putExtras(bundle);
+		startActivity(detail);
+		/*
+		CustomerDetail detail = new CustomerDetail();
+		detail.setArguments(bundle);
+		startFragment(detail, true);
+		*/
 	}
 
 	@Override

@@ -69,12 +69,12 @@
         </activity>
         <activity
             android:name="com.odoo.base.about.About"
-            android:theme="@style/ProfileActivityTheme" >
+            android:theme="@style/DetailActivity" >
         </activity>
         <activity
             android:name="com.odoo.base.account.UserProfile"
             android:label="@string/title_activity_user_profile"
-            android:theme="@style/ProfileActivityTheme" >
+            android:theme="@style/DetailActivity" >
         </activity>
 
         <!-- Base Providers (Note: update authority as per your app package) -->
@@ -108,7 +108,7 @@
             android:authorities="com.odoo.crm.base.res.providers.partners"
             android:enabled="true"
             android:exported="false"
-            android:label="Partner"
+            android:label="Customers"
             android:multiprocess="true"
             android:syncable="true" />
 
@@ -191,7 +191,18 @@
 
             <meta-data
                 android:name="android.content.SyncAdapter"
-                android:resource="@xml/sync_partner_data" />
+                android:resource="@xml/sync_customer_data" />
+        </service>
+        <service
+            android:name="com.odoo.addons.calendar.service.CalendarService"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/sync_calendar" />
         </service>
         <!-- Quotation/SalesOrder service -->
         <provider
@@ -227,7 +238,13 @@
             android:authorities="com.odoo.addons.calendar.providers.events"
             android:enabled="true"
             android:exported="false"
+            android:label="Calendar"
             android:syncable="true" />
+
+        <activity
+            android:name="com.odoo.addons.customers.CustomerDetails"
+            android:theme="@style/DetailActivity.Light" >
+        </activity>
     </application>
 
 </manifest>

@@ -37,6 +37,8 @@ public class CRMPhoneCall extends OModel {
 			RelationType.ManyToOne);
 	OColumn call_audio_file = new OColumn("recorded audio file",
 			OVarchar.class, 200).setLocalColumn();
+	OColumn data_type = new OColumn("Data type", OVarchar.class, 34)
+			.setLocalColumn().setDefault("phone_call");
 
 	public CRMPhoneCall(Context context) {
 		super(context, "crm.phonecall");

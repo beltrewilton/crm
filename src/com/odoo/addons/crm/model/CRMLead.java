@@ -104,6 +104,8 @@ public class CRMLead extends OModel {
 	@Functional(method = "storeAssigneeName", store = true, depends = { "user_id" })
 	OColumn assignee_name = new OColumn("Assignee", OVarchar.class, 100)
 			.setLocalColumn();
+	OColumn data_type = new OColumn("Data type", OVarchar.class, 34)
+			.setLocalColumn().setDefault("opportunity");
 
 	public CRMLead(Context context) {
 		super(context, "crm.lead");

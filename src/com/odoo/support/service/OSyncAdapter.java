@@ -618,8 +618,10 @@ public class OSyncAdapter extends AbstractThreadedSyncAdapter {
 						values.put(col.getName(),
 								original_record.get(col.getName()));
 					for (String dCol : col.getFunctionalStoreDepends()) {
-						Object data = original_record.get(dCol);
-						values.put(dCol, data);
+						if (original_record.has(dCol)) {
+							Object data = original_record.get(dCol);
+							values.put(dCol, data);
+						}
 					}
 					Object value = model.getFunctionalMethodValue(col, values);
 					batch.withValue(col.getName(), value);
