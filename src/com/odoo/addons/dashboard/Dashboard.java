@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -12,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,6 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -34,12 +38,19 @@ import com.odoo.support.fragment.OnSearchViewChangeListener;
 import com.odoo.support.listview.OCursorListAdapter;
 import com.odoo.support.listview.OCursorListAdapter.OnViewBindListener;
 import com.odoo.support.listview.OCursorListAdapter.OnViewCreateListener;
+import com.odoo.util.MapUtil;
 import com.odoo.util.OControls;
 import com.odoo.util.drawer.DrawerItem;
+import com.odoo.widgets.bottomsheet.BottomSheet;
+import com.odoo.widgets.bottomsheet.BottomSheet.Builder;
+import com.odoo.widgets.bottomsheet.BottomSheetListeners.OnSheetActionClickListener;
+import com.odoo.widgets.bottomsheet.BottomSheetListeners.OnSheetItemClickListener;
 
 public class Dashboard extends BaseFragment implements
 		OdooCalendarDateSelectListener, OnClickListener,
-		LoaderCallbacks<Cursor>, OnViewBindListener, OnSearchViewChangeListener {
+		LoaderCallbacks<Cursor>, OnViewBindListener,
+		OnSearchViewChangeListener, OnItemClickListener,
+		OnSheetItemClickListener, OnSheetActionClickListener {
 
 	public static final String KEY = Dashboard.class.getSimpleName();
 	private OdooCalendar cal;
@@ -48,6 +59,11 @@ public class Dashboard extends BaseFragment implements
 	private OCursorListAdapter mAdapter;
 	private String mFilterDate;
 	private String mFilter = null;
+	private BottomSheet mSheet = null;
+
+	private enum DialogType {
+		Event, PhoneCall, Opportunity
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -61,12 +77,15 @@ public class Dashboard extends BaseFragment implements
 		cal = (OdooCalendar) view.findViewById(R.id.dashboard_calendar);
 		cal.setOdooCalendarDateSelectListener(this);
 		scope = new AppScope(this);
+		scope.main().setOnBackPressCallBack(this);
 	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		menu.clear();
 		inflater.inflate(R.menu.menu_dashboard, menu);
+		MenuItem today = menu.findItem(R.id.menu_dashboard_goto_today);
+		today.setIcon(TodayIcon.get(getActivity()).getIcon());
 		setHasSearchView(this, menu, R.id.menu_search);
 	}
 
@@ -111,11 +130,11 @@ public class Dashboard extends BaseFragment implements
 		if (mFilterDate == null) {
 			mFilterDate = date.getYear() + "-" + date.getMonth() + "-"
 					+ date.getDate();
-			getLoaderManager().initLoader(0, null, this);
+			getLoaderManager().initLoader(0, null, Dashboard.this);
 		} else {
 			mFilterDate = date.getYear() + "-" + date.getMonth() + "-"
 					+ date.getDate();
-			getLoaderManager().restartLoader(0, null, this);
+			getLoaderManager().restartLoader(0, null, Dashboard.this);
 		}
 		return calendarView;
 	}
@@ -151,6 +170,7 @@ public class Dashboard extends BaseFragment implements
 		mAdapter.setOnViewBindListener(this);
 		dashboardListView.setAdapter(mAdapter);
 		mAdapter.changeCursor(null);
+		dashboardListView.setOnItemClickListener(this);
 	}
 
 	@Override
@@ -229,5 +249,136 @@ public class Dashboard extends BaseFragment implements
 	@Override
 	public void onSearchViewClose() {
 		// Nothing to do
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		getLoaderManager().destroyLoader(0);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		Cursor cr = mAdapter.getCursor();
+		cr.moveToPosition(position);
+		String data_type = cr.getString(cr.getColumnIndex("data_type"));
+		if (!data_type.equals("seperator")) {
+			if (data_type.equals("phone_call")) {
+				createDialog(DialogType.PhoneCall, cr);
+			}
+			if (data_type.equals("event")) {
+				createDialog(DialogType.Event, cr);
+			}
+			if (data_type.equals("opportunity")) {
+				createDialog(DialogType.Opportunity, cr);
+			}
+		}
+	}
+
+	private void createDialog(DialogType type, Object data) {
+		if (mSheet != null) {
+			mSheet.dismiss();
+		}
+		Cursor cr = (Cursor) data;
+		// Creating sheet object
+		BottomSheet.Builder builder = new Builder(getActivity());
+		builder.listener(this);
+		builder.setIconColor(_c(R.color.theme_primary_dark));
+		builder.setTextColor(Color.parseColor("#414141"));
+		builder.setData(data);
+		builder.actionListener(this);
+		builder.setActionIcon(R.drawable.ic_action_edit);
+		builder.title(cr.getString(cr.getColumnIndex("name")));
+		switch (type) {
+		case PhoneCall:
+			builder.menu(R.menu.menu_dashboard_phonecall);
+			break;
+		case Event:
+			builder.menu(R.menu.menu_dashboard_events);
+			break;
+		case Opportunity:
+			builder.menu(R.menu.menu_dashboard_opportunity);
+			break;
+		}
+		mSheet = builder.create();
+		mSheet.show();
+	}
+
+	@Override
+	public void onItemClick(BottomSheet sheet, MenuItem menu, Object extra) {
+		dismissSheet(sheet);
+		Cursor cr = (Cursor) extra;
+		switch (menu.getItemId()) {
+		// Phone call menus
+		case R.id.menu_phonecall_call:
+			break;
+		case R.id.menu_phonecall_reschedule:
+			break;
+		case R.id.menu_phonecall_all_done:
+			break;
+		// Event menus
+		case R.id.menu_events_location:
+			String location = cr.getString(cr.getColumnIndex("location"));
+			if (location.equals("false")) {
+				Toast.makeText(getActivity(), "No location found !",
+						Toast.LENGTH_LONG).show();
+			} else {
+				MapUtil.redirectToMap(getActivity(), location);
+			}
+			break;
+		case R.id.menu_events_reschedule:
+			break;
+		case R.id.menu_events_all_done:
+			break;
+		// Opportunity menus
+		case R.id.menu_opp_customer_location:
+			String address = cr.getString(cr.getColumnIndex("street")) + ", ";
+			address += cr.getString(cr.getColumnIndex("street2")) + ", ";
+			address += cr.getString(cr.getColumnIndex("city")) + ", ";
+			address += cr.getString(cr.getColumnIndex("zip"));
+			address = address.replaceAll("false", "");
+			if (TextUtils.isEmpty(address)) {
+				Toast.makeText(getActivity(), "No location found !",
+						Toast.LENGTH_LONG).show();
+			} else {
+				MapUtil.redirectToMap(getActivity(), address);
+			}
+			break;
+		case R.id.menu_opp_call_customer:
+			break;
+		case R.id.menu_opp_lost:
+			break;
+		case R.id.menu_opp_won:
+			break;
+		case R.id.menu_opp_reschedule:
+			break;
+		}
+	}
+
+	private void dismissSheet(final BottomSheet sheet) {
+		new Handler().postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				sheet.dismiss();
+			}
+		}, 100);
+	}
+
+	@Override
+	public boolean onBackPressed() {
+		if (mSheet != null && mSheet.isShowing()) {
+			mSheet.dismiss();
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public void onSheetActionClick(BottomSheet sheet, Object extras) {
+		dismissSheet(sheet);
+		Cursor cr = (Cursor) extras;
+		sheet.dismiss();
 	}
 }

@@ -13,6 +13,7 @@
     <string name="action_settings">Settings</string>
 
     <!-- Labels -->
+    <string name="toast_you_are_offline">You are offline</string>
     <string name="label_save">Save</string>
     <string name="label_edit">Edit</string>
     <string name="label_create">Create New</string>

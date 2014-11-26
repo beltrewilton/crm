@@ -37,9 +37,9 @@ import com.odoo.support.fragment.OnSearchViewChangeListener;
 import com.odoo.support.fragment.SyncStatusObserverListener;
 import com.odoo.support.listview.OCursorListAdapter;
 import com.odoo.support.listview.OCursorListAdapter.OnRowViewClickListener;
+import com.odoo.util.MapUtil;
 import com.odoo.util.OControls;
 import com.odoo.util.drawer.DrawerItem;
-import com.odoo.util.logger.OLog;
 
 public class Customers extends BaseFragment implements OnRefreshListener,
 		OnItemClickListener, LoaderCallbacks<Cursor>,
@@ -135,15 +135,14 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		Bundle bundle = new Bundle();
 		bundle.putInt(OColumn.ROW_ID, _id);
 		bundle.putInt("id", record_id);
-		
+
 		Intent detail = new Intent(getActivity(), CustomerDetails.class);
 		detail.putExtras(bundle);
 		startActivity(detail);
 		/*
-		CustomerDetail detail = new CustomerDetail();
-		detail.setArguments(bundle);
-		startFragment(detail, true);
-		*/
+		 * CustomerDetail detail = new CustomerDetail();
+		 * detail.setArguments(bundle); startFragment(detail, true);
+		 */
 	}
 
 	@Override
@@ -202,10 +201,7 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		switch (view.getId()) {
 		case R.id.user_location:
 			String address = ((ResPartner) db()).getAddress(cursor);
-			OLog.log(address + " <<");
-			String map = "google.navigation:q=" + address;
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(map));
-			startActivity(intent);
+			MapUtil.redirectToMap(getActivity(), address);
 			break;
 		case R.id.call_user:
 			String phone = cursor.getString(cursor.getColumnIndex("phone"));
