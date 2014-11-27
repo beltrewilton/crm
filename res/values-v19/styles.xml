@@ -31,10 +31,4 @@
         <item name="android:windowTranslucentStatus">@bool/fit_to_window_height</item>
     </style>
 
-    <style name="DetailActivity.Light" parent="Theme.AppCompat.Light">
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowActionBarOverlay">true</item>
-        <item name="windowActionBarOverlay">true</item>
-    </style>
-
 </resources>

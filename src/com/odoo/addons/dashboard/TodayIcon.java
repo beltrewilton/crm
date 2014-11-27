@@ -62,7 +62,7 @@ public class TodayIcon {
 		c.drawBitmap(mDefaultIcon, 0, 0, null);
 		c.drawColor(Color.TRANSPARENT);
 		mPaint.getTextBounds(date, 0, 2, mBounds);
-		c.drawText(date, 0, 2, width / 2, 7 + height / 2
+		c.drawText(date, 0, 2, width / 2, 5 + height / 2
 				+ (mBounds.bottom - mBounds.top) / 2, mPaint);
 		return bitmap;
 	}
