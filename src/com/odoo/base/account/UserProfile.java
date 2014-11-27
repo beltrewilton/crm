@@ -5,8 +5,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -41,8 +39,6 @@ public class UserProfile extends ActionBarActivity {
 		setContentView(R.layout.activity_user_profile);
 		mContext = this;
 		actionBar = getSupportActionBar();
-		actionBar.setBackgroundDrawable(new ColorDrawable(Color
-				.parseColor("#00000000")));
 		actionBar.setTitle("");
 		actionBar.setHomeButtonEnabled(true);
 		actionBar.setDisplayHomeAsUpEnabled(true);
@@ -59,8 +55,8 @@ public class UserProfile extends ActionBarActivity {
 		else
 			userPic = BitmapFactory.decodeResource(mContext.getResources(),
 					R.drawable.avatar);
-		OControls.setImage(rootview, R.id.imgUserProfilePic, userPic);
-		OControls.setText(rootview, R.id.userFullName, scope.User().getName());
+		OControls.setImage(rootview, android.R.id.icon, userPic);
+		OControls.setText(rootview, android.R.id.title, scope.User().getName());
 		OControls.setText(rootview, R.id.txvUserName, scope.User()
 				.getUsername());
 		OControls.setText(rootview, R.id.txvServerUrl, (scope.User()

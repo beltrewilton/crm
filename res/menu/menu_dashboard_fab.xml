@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/menu_fab_new_event"
+        android:icon="@drawable/ic_action_event"
+        android:title="Event">
+    </item>
+    <item
+        android:id="@+id/menu_fab_new_lead"
+        android:icon="@drawable/ic_action_leads"
+        android:title="Lead">
+    </item>
+    <item
+        android:id="@+id/menu_fab_new_call_log"
+        android:icon="@drawable/ic_action_phone"
+        android:title="Log call">
+    </item>
+    <item
+        android:id="@+id/menu_fab_new_customer"
+        android:icon="@drawable/ic_action_add_account"
+        android:title="Customer">
+    </item>
+
+</menu>

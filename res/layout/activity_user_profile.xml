@@ -1,45 +1,50 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.odoo.widgets.parallax.ParallaxScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:odoo="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/parallaxScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".UserProfile" >
+    android:background="#ebebeb"
+    odoo:parallax_actionbar_height="?attr/actionBarSize"
+    odoo:parallax_overlay_color="@color/theme_primary" >
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/profile_parent_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#ebebeb"
-        android:orientation="vertical" >
+        android:background="#ebebeb" >
 
         <FrameLayout
+            android:id="@+id/parallax_view"
             android:layout_width="match_parent"
-            android:layout_height="280dp"
-            android:layout_marginBottom="10dp" >
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="-56dp" >
 
             <ImageView
-                android:id="@+id/imgUserProfilePic"
+                android:id="@android:id/icon"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="280dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/account_user_dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_action_user" />
-
-            <TextView
-                android:id="@+id/userFullName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:background="@drawable/name_bg_shade"
-                android:fontFamily="@string/font_fontFamily_condensed"
-                android:padding="10dp"
-                android:textColor="#ffffff"
-                android:textSize="25sp" />
         </FrameLayout>
+
+        <TextView
+            android:id="@android:id/title"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_below="@+id/parallax_view"
+            android:gravity="center_vertical"
+            android:paddingLeft="62dp"
+            android:paddingRight="24dp"
+            android:singleLine="true"
+            android:textColor="#ffffff"
+            android:textSize="25sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@android:id/title"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:background="#ebebeb"
@@ -175,6 +180,6 @@
                     android:textAppearance="?android:attr/textAppearanceMedium" />
             </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </RelativeLayout>
 
-</ScrollView>
+</com.odoo.widgets.parallax.ParallaxScrollView>

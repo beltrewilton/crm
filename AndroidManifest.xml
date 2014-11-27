@@ -242,8 +242,8 @@
             android:syncable="true" />
 
         <activity
-            android:name="com.odoo.addons.customers.CustomerDetails"
-            android:theme="@style/DetailActivity.Light" >
+            android:name="com.odoo.addons.customers.CustomerDetail"
+            android:theme="@style/DetailActivity" >
         </activity>
     </application>
 

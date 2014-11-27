@@ -3,7 +3,9 @@ package com.odoo.addons.dashboard;
 import java.util.ArrayList;
 import java.util.List;
 
+import odoo.controls.fab.FloatingActionButton;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -27,10 +29,14 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.odoo.addons.calendar.model.CalendarEvent;
+import com.odoo.addons.crm.CRM;
+import com.odoo.addons.crm.CRMDetail;
+import com.odoo.addons.customers.CustomerDetail;
 import com.odoo.calendar.SysCal.DateInfo;
 import com.odoo.calendar.view.OdooCalendar;
 import com.odoo.calendar.view.OdooCalendar.OdooCalendarDateSelectListener;
 import com.odoo.crm.R;
+import com.odoo.orm.OColumn;
 import com.odoo.orm.ODataRow;
 import com.odoo.support.AppScope;
 import com.odoo.support.fragment.BaseFragment;
@@ -60,6 +66,7 @@ public class Dashboard extends BaseFragment implements
 	private String mFilterDate;
 	private String mFilter = null;
 	private BottomSheet mSheet = null;
+	private FloatingActionButton mFab;
 
 	private enum DialogType {
 		Event, PhoneCall, Opportunity
@@ -78,14 +85,18 @@ public class Dashboard extends BaseFragment implements
 		cal.setOdooCalendarDateSelectListener(this);
 		scope = new AppScope(this);
 		scope.main().setOnBackPressCallBack(this);
+		mFab = (FloatingActionButton) view.findViewById(R.id.fabbutton);
+		mFab.setOnClickListener(this);
 	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		menu.clear();
 		inflater.inflate(R.menu.menu_dashboard, menu);
-		MenuItem today = menu.findItem(R.id.menu_dashboard_goto_today);
-		today.setIcon(TodayIcon.get(getActivity()).getIcon());
+		if (getActivity() != null) {
+			MenuItem today = menu.findItem(R.id.menu_dashboard_goto_today);
+			today.setIcon(TodayIcon.get(getActivity()).getIcon());
+		}
 		setHasSearchView(this, menu, R.id.menu_search);
 	}
 
@@ -107,7 +118,7 @@ public class Dashboard extends BaseFragment implements
 	@Override
 	public List<DrawerItem> drawerMenus(Context context) {
 		List<DrawerItem> menu = new ArrayList<DrawerItem>();
-		menu.add(new DrawerItem(KEY, "Dashboard", 0,
+		menu.add(new DrawerItem(KEY, "Agenda", 0,
 				R.drawable.ic_action_dashboard, obj()));
 		return menu;
 	}
@@ -142,6 +153,19 @@ public class Dashboard extends BaseFragment implements
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
+		case R.id.fabbutton:
+			BottomSheet.Builder builder = new Builder(getActivity());
+			builder.listener(this);
+			builder.setIconColor(_c(R.color.theme_secondary_dark));
+			builder.setTextColor(Color.parseColor("#414141"));
+			ODataRow data = new ODataRow();
+			data.put("fab", true);
+			builder.setData(data);
+			builder.title(_s(R.string.label_new));
+			builder.menu(R.menu.menu_dashboard_fab);
+			mSheet = builder.create();
+			mSheet.show();
+			break;
 		case R.id.dashboard_no_item_view:
 			Toast.makeText(getActivity(),
 					"TODO: Selection dialog for add event.", Toast.LENGTH_LONG)
@@ -308,6 +332,16 @@ public class Dashboard extends BaseFragment implements
 	@Override
 	public void onItemClick(BottomSheet sheet, MenuItem menu, Object extra) {
 		dismissSheet(sheet);
+		if (extra instanceof ODataRow) {
+			switch (menu.getItemId()) {
+			case R.id.menu_fab_new_customer:
+				startActivity(new Intent(getActivity(), CustomerDetail.class));
+				break;
+			}
+
+			// fab items
+			return;
+		}
 		Cursor cr = (Cursor) extra;
 		switch (menu.getItemId()) {
 		// Phone call menus
@@ -376,9 +410,30 @@ public class Dashboard extends BaseFragment implements
 	}
 
 	@Override
-	public void onSheetActionClick(BottomSheet sheet, Object extras) {
+	public void onSheetActionClick(BottomSheet sheet, final Object extras) {
 		dismissSheet(sheet);
-		Cursor cr = (Cursor) extras;
-		sheet.dismiss();
+		new Handler().postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				Cursor cr = (Cursor) extras;
+				String data_type = cr.getString(cr.getColumnIndex("data_type"));
+				int record_id = cr.getInt(cr.getColumnIndex(OColumn.ROW_ID));
+				if (data_type.equals("phone_call")) {
+				}
+				if (data_type.equals("event")) {
+				}
+				if (data_type.equals("opportunity")) {
+					CRMDetail crmDetail = new CRMDetail();
+					Bundle bundle = new Bundle();
+					bundle.putInt(OColumn.ROW_ID, record_id);
+					bundle.putString(CRM.KEY_CRM_LEAD_TYPE,
+							CRM.Keys.Opportunities.toString());
+					crmDetail.setArguments(bundle);
+					startFragment(crmDetail, true);
+				}
+			}
+		}, 250);
+
 	}
 }

@@ -46,7 +46,7 @@ public class CRM extends BaseFragment implements OnRefreshListener,
 	// public static final String TAG = CRM.class.getSimpleName();
 	public static final String KEY_CRM_LEAD_TYPE = "crm_lead_type";
 
-	enum Keys {
+	public enum Keys {
 		Leads, Opportunities
 	}
 

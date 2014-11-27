@@ -136,13 +136,9 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		bundle.putInt(OColumn.ROW_ID, _id);
 		bundle.putInt("id", record_id);
 
-		Intent detail = new Intent(getActivity(), CustomerDetails.class);
+		Intent detail = new Intent(getActivity(), CustomerDetail.class);
 		detail.putExtras(bundle);
 		startActivity(detail);
-		/*
-		 * CustomerDetail detail = new CustomerDetail();
-		 * detail.setArguments(bundle); startFragment(detail, true);
-		 */
 	}
 
 	@Override
