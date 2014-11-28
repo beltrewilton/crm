@@ -13,12 +13,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,7 +25,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.odoo.App;
 import com.odoo.addons.crm.CRM.Keys;
 import com.odoo.addons.crm.model.CRMLead;
 import com.odoo.base.res.ResUsers;
@@ -35,57 +33,45 @@ import com.odoo.orm.OColumn;
 import com.odoo.orm.ODataRow;
 import com.odoo.orm.OValues;
 import com.odoo.support.ODialog;
-import com.odoo.support.OUser;
+import com.odoo.support.fragment.BaseFragment;
+import com.odoo.util.OControls;
 import com.odoo.util.ODate;
+import com.odoo.util.drawer.DrawerItem;
 
-public class CRMDetail extends ActionBarActivity implements OnClickListener,
+public class CRMDetailFrag extends BaseFragment implements OnClickListener,
 		DialogListRowViewListener {
 
-	private ActionBar actionBar;
+	private View mView = null;
 	private Keys mKey = null;
 	private Integer mId = null;
-	private Menu mMenu = null;
-	private Context mContext = null;
+	Menu mMenu = null;
+	Context mContext = null;
 	private Boolean mEditMode = true;
 	private OForm mForm = null;
-	private ODataRow mRecord = null;
-	private Bundle arg = null;
-	private App app = null;
-	private OUser user = null;
+	ODataRow mRecord = null;
+	Bundle arg = null;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.crm_detail_view);
-		actionBar = getSupportActionBar();
-		actionBar.setHomeButtonEnabled(true);
-		actionBar.setDisplayHomeAsUpEnabled(true);
-		actionBar.setBackgroundDrawable(new ColorDrawable(getResources()
-				.getColor(R.color.theme_primary)));
-		actionBar.setHomeAsUpIndicator(R.drawable.ic_action_mark_undone);
-		mContext = this;
-		app = (App) mContext.getApplicationContext();
-		user = OUser.current(mContext);
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
 		initArgs();
-		init();
+		setHasOptionsMenu(true);
+		mContext = getActivity();
+		mView = inflater.inflate(R.layout.crm_detail_view, container, false);
+		return mView;
 	}
 
-	private void initArgs() {
-		arg = getIntent().getExtras();
-		if (arg != null) {
-			mKey = Keys.valueOf(arg.getString(CRM.KEY_CRM_LEAD_TYPE));
-			actionBar.setTitle((mKey == Keys.Leads) ? "Lead" : "Opportunity");
-			if (arg.containsKey(OColumn.ROW_ID)) {
-				mId = arg.getInt(OColumn.ROW_ID);
-			}
-		}
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		init();
 	}
 
 	private void init() {
 		switch (mKey) {
 		case Leads:
-			findViewById(R.id.crmLeadDetail).setVisibility(View.VISIBLE);
-			mForm = (OForm) findViewById(R.id.crmLeadDetail);
+			OControls.setVisible(mView, R.id.crmLeadDetail);
+			mForm = (OForm) mView.findViewById(R.id.crmLeadDetail);
 			if (mId != null) {
 				mForm.findViewById(R.id.btnConvertToOpportunity)
 						.setOnClickListener(this);
@@ -98,15 +84,15 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 			partner_id.setManyToOneSearchableCallbacks(this);
 			break;
 		case Opportunities:
-			findViewById(R.id.crmOppDetail).setVisibility(View.VISIBLE);
-			mForm = (OForm) findViewById(R.id.crmOppDetail);
+			OControls.setVisible(mView, R.id.crmOppDetail);
+			mForm = (OForm) mView.findViewById(R.id.crmOppDetail);
 			mForm.findViewById(R.id.btnConvertToQuotation).setOnClickListener(
 					this);
 			partner_id = (OField) mForm.findViewById(R.id.partner_id_opp);
 			partner_id.setManyToOneSearchableCallbacks(this);
 			break;
 		}
-		CRMLead crmLead = new CRMLead(mContext);
+		CRMLead crmLead = new CRMLead(getActivity());
 		if (mId != null) {
 			mRecord = crmLead.select(mId);
 			mForm.initForm(mRecord);
@@ -119,26 +105,37 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 	private void updateMenu(boolean edit_mode) {
 		mMenu.findItem(R.id.menu_crm_detail_save).setVisible(edit_mode);
 		mMenu.findItem(R.id.menu_crm_detail_edit).setVisible(!edit_mode);
-		if (mId == null) {
-			mMenu.findItem(R.id.menu_crm_detail_delete).setVisible(false);
+	}
+
+	public void initArgs() {
+		arg = getArguments();
+		mKey = Keys.valueOf(arg.getString(CRM.KEY_CRM_LEAD_TYPE));
+		if (arg.containsKey(OColumn.ROW_ID)) {
+			mId = arg.getInt(OColumn.ROW_ID);
 		}
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public Object databaseHelper(Context context) {
+		return null;
+	}
+
+	@Override
+	public List<DrawerItem> drawerMenus(Context context) {
+		return null;
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		menu.clear();
-		getMenuInflater().inflate(R.menu.menu_crm_detail, menu);
+		inflater.inflate(R.menu.menu_crm_detail, menu);
 		mMenu = menu;
 		updateMenu(mEditMode);
-		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case android.R.id.home:
-			finish();
-			break;
 		case R.id.menu_crm_detail_edit:
 			mEditMode = !mEditMode;
 			updateMenu(mEditMode);
@@ -152,24 +149,19 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 				if (mId != null) {
 					switch (mKey) {
 					case Leads:
-						new CRMLead(mContext).update(values, mId);
+						new CRMLead(getActivity()).update(values, mId);
 						break;
 					case Opportunities:
-						new CRMLead(mContext).update(values, mId);
+						new CRMLead(getActivity()).update(values, mId);
 						break;
 					}
 				} else {
-					ResUsers users = new ResUsers(mContext);
-					Integer user_id = users.selectRowId(user.getUser_id());
-					if (user_id == null) {
-						OValues userVals = new OValues();
-						userVals.put("id", user.getUser_id());
-						user_id = users.create(userVals);
-					}
-					values.put("user_id", user_id);
+					ResUsers users = new ResUsers(getActivity());
+					values.put("user_id",
+							users.selectRowId(scope.User().getUser_id()));
 					values.put("assignee_name", "Me");
 					CRMLead.CRMCaseStage stages = new CRMLead.CRMCaseStage(
-							mContext);
+							getActivity());
 					List<ODataRow> stage = stages.select(
 							"type = ? and name = ?", new String[] { "both",
 									"New" });
@@ -181,21 +173,19 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 							ODate.getUTCDate(ODate.DEFAULT_FORMAT));
 					switch (mKey) {
 					case Leads:
-						values.put("type", "lead");
-						new CRMLead(mContext).create(values);
+						new CRMLead(getActivity()).create(values);
 						break;
 					case Opportunities:
-						values.put("type", "opportunity");
-						new CRMLead(mContext).create(values);
+						new CRMLead(getActivity()).create(values);
 						break;
 					}
 				}
-				finish();
+				getActivity().getSupportFragmentManager().popBackStack();
 			}
 			break;
 		case R.id.menu_crm_detail_delete:
-			new CRMLead(mContext).delete(mId);
-			finish();
+			new CRMLead(getActivity()).delete(mId);
+			getActivity().getSupportFragmentManager().popBackStack();
 			break;
 		}
 		return super.onOptionsItemSelected(item);
@@ -208,19 +198,17 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 		case R.id.btnConvertToOpportunity:
 			CRMConvertToOpp convertToOpportunity = new CRMConvertToOpp();
 			if (arg.getInt("id") != 0) {
-				if (app.inNetwork()) {
+				if (app().inNetwork()) {
 					bundle.putInt("lead_id", mId);
-					bundle.putInt("index",
-							getIntent().getExtras().getInt("index"));
+					bundle.putInt("index", getArguments().getInt("index"));
 					convertToOpportunity.setArguments(bundle);
-					// startFragment(convertToOpportunity, true);
+					startFragment(convertToOpportunity, true);
 				} else {
-					Toast.makeText(mContext,
-							getString(R.string.toast_no_netowrk),
+					Toast.makeText(mContext, _s(R.string.toast_no_netowrk),
 							Toast.LENGTH_SHORT).show();
 				}
 			} else {
-				Toast.makeText(mContext, getString(R.string.toast_sync_before),
+				Toast.makeText(mContext, _s(R.string.toast_sync_before),
 						Toast.LENGTH_SHORT).show();
 			}
 			break;
@@ -247,18 +235,18 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			mDialog = new ODialog(mContext, false, "Converting....");
+			mDialog = new ODialog(getActivity(), false, "Converting....");
 			mDialog.show();
 		}
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			runOnUiThread(new Runnable() {
+			getActivity().runOnUiThread(new Runnable() {
 
 				@Override
 				public void run() {
 					try {
-						Odoo odoo = app.getOdoo();
+						Odoo odoo = app().getOdoo();
 						int version = odoo.getOdooVersion().getVersion_number();
 						OArguments args = new OArguments();
 						JSONArray fields = new JSONArray();
@@ -330,4 +318,11 @@ public class CRMDetail extends ActionBarActivity implements OnClickListener,
 			txvName.setText(data.getString("name"));
 		}
 	}
+
+	@Override
+	public boolean onBackPressed() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

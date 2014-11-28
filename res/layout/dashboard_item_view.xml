@@ -18,7 +18,7 @@
             android:id="@+id/event_icon"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_gravity="center"
+            android:layout_gravity="center_horizontal"
             android:background="@drawable/circle_mask_secondary"
             android:padding="8dp"
             android:src="@drawable/ic_action_phone"
@@ -33,22 +33,36 @@
             android:paddingLeft="5dp"
             android:paddingRight="5dp" >
 
-            <TextView
-                android:id="@+id/event_name"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="Call Scheduled for Nilesh Panchal"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textColor="#414141" />
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:id="@+id/event_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:paddingRight="8dp"
+                    android:singleLine="true"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="#414141" />
+
+                <TextView
+                    android:id="@+id/event_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/theme_secondary_light" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/event_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:text="Need to ask for quotation"
+                android:maxLines="2"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#aaaaaa" />
         </LinearLayout>

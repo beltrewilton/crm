@@ -399,4 +399,8 @@ public abstract class BaseFragment extends Fragment implements OModuleHelper,
 	public void onMenuCreated(Menu menu) {
 
 	}
+
+	public void postDelayed(Runnable runable, int delayMillis) {
+		new Handler().postDelayed(runable, delayMillis);
+	}
 }

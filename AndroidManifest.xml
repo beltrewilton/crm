@@ -245,6 +245,14 @@
             android:name="com.odoo.addons.customers.CustomerDetail"
             android:theme="@style/DetailActivity" >
         </activity>
+        <activity
+            android:name="com.odoo.addons.crm.CRMDetail"
+            android:theme="@style/DetailActivity" >
+        </activity>
+        <activity
+            android:name="com.odoo.addons.calendar.CalendarDetail"
+            android:theme="@style/DetailActivity" >
+        </activity>
     </application>
 
 </manifest>

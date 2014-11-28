@@ -2,6 +2,7 @@ package com.odoo.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -58,9 +59,9 @@ public class OControls {
 			long duration, Context context) {
 		View view = parent_view.findViewById(resource_id);
 		view.setVisibility(View.VISIBLE);
-//		Animation animate = AnimationUtils.loadAnimation(context,
-//				R.anim.slide_in_from_left);
-//		view.startAnimation(animate);
+		// Animation animate = AnimationUtils.loadAnimation(context,
+		// R.anim.slide_in_from_left);
+		// view.startAnimation(animate);
 
 	}
 
@@ -68,9 +69,9 @@ public class OControls {
 			long duration, Context context) {
 		View view = parent_view.findViewById(resource_id);
 		view.setVisibility(View.VISIBLE);
-//		Animation animate = AnimationUtils.loadAnimation(context,
-//				R.anim.slide_in_from_left);
-//		view.startAnimation(animate);
+		// Animation animate = AnimationUtils.loadAnimation(context,
+		// R.anim.slide_in_from_left);
+		// view.startAnimation(animate);
 
 	}
 
@@ -90,6 +91,22 @@ public class OControls {
 		} else {
 			OControls.slideOutToRight(parent_view, resource_id, 500, context);
 		}
+	}
+
+	public static void setTextViewStrikeThrough(View parent, int res_id) {
+		TextView tv = (TextView) parent.findViewById(res_id);
+		tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+	}
+
+	public static void setColorFilter(View parent, int image_view_res_id,
+			int color) {
+		ImageView img = (ImageView) parent.findViewById(image_view_res_id);
+		img.setColorFilter(color);
+	}
+
+	public static void setTextColor(View parent, int txv_id, int color) {
+		TextView tv = (TextView) parent.findViewById(txv_id);
+		tv.setTextColor(color);
 	}
 
 }

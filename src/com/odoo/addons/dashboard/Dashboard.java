@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,35 +29,50 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.odoo.addons.calendar.CalendarDetail;
 import com.odoo.addons.calendar.model.CalendarEvent;
+import com.odoo.addons.calendar.providers.events.CalendarEventProvider;
 import com.odoo.addons.crm.CRM;
 import com.odoo.addons.crm.CRMDetail;
+import com.odoo.addons.crm.CRMDetailFrag;
+import com.odoo.addons.crm.model.CRMPhoneCall;
 import com.odoo.addons.customers.CustomerDetail;
+import com.odoo.base.res.ResPartner;
 import com.odoo.calendar.SysCal.DateInfo;
 import com.odoo.calendar.view.OdooCalendar;
 import com.odoo.calendar.view.OdooCalendar.OdooCalendarDateSelectListener;
 import com.odoo.crm.R;
 import com.odoo.orm.OColumn;
 import com.odoo.orm.ODataRow;
+import com.odoo.orm.OValues;
 import com.odoo.support.AppScope;
 import com.odoo.support.fragment.BaseFragment;
 import com.odoo.support.fragment.OnSearchViewChangeListener;
+import com.odoo.support.fragment.SyncStatusObserverListener;
 import com.odoo.support.listview.OCursorListAdapter;
 import com.odoo.support.listview.OCursorListAdapter.OnViewBindListener;
 import com.odoo.support.listview.OCursorListAdapter.OnViewCreateListener;
-import com.odoo.util.MapUtil;
+import com.odoo.util.IntentUtil;
 import com.odoo.util.OControls;
+import com.odoo.util.ODate;
 import com.odoo.util.drawer.DrawerItem;
 import com.odoo.widgets.bottomsheet.BottomSheet;
 import com.odoo.widgets.bottomsheet.BottomSheet.Builder;
 import com.odoo.widgets.bottomsheet.BottomSheetListeners.OnSheetActionClickListener;
 import com.odoo.widgets.bottomsheet.BottomSheetListeners.OnSheetItemClickListener;
+import com.odoo.widgets.bottomsheet.BottomSheetListeners.OnSheetMenuCreateListener;
+import com.odoo.widgets.snackbar.SnackBar;
+import com.odoo.widgets.snackbar.SnackbarBuilder;
+import com.odoo.widgets.snackbar.SnackbarBuilder.SnackbarDuration;
+import com.odoo.widgets.snackbar.listeners.ActionClickListener;
 
 public class Dashboard extends BaseFragment implements
 		OdooCalendarDateSelectListener, OnClickListener,
 		LoaderCallbacks<Cursor>, OnViewBindListener,
 		OnSearchViewChangeListener, OnItemClickListener,
-		OnSheetItemClickListener, OnSheetActionClickListener {
+		OnSheetItemClickListener, OnSheetActionClickListener,
+		SyncStatusObserverListener, OnRefreshListener,
+		OnSheetMenuCreateListener {
 
 	public static final String KEY = Dashboard.class.getSimpleName();
 	private OdooCalendar cal;
@@ -67,6 +83,7 @@ public class Dashboard extends BaseFragment implements
 	private String mFilter = null;
 	private BottomSheet mSheet = null;
 	private FloatingActionButton mFab;
+	private Boolean syncRequested = false;
 
 	private enum DialogType {
 		Event, PhoneCall, Opportunity
@@ -87,6 +104,27 @@ public class Dashboard extends BaseFragment implements
 		scope.main().setOnBackPressCallBack(this);
 		mFab = (FloatingActionButton) view.findViewById(R.id.fabbutton);
 		mFab.setOnClickListener(this);
+		snackYouAreOffLine();
+		setHasSyncStatusObserver(KEY, this, db());
+	}
+
+	private void snackYouAreOffLine() {
+		if (!inNetwork()) {
+			SnackBar.get(getActivity()).text(R.string.toast_you_are_offline)
+					.duration(SnackbarDuration.LENGTH_LONG).show();
+			hideFAB(4000);
+		}
+	}
+
+	private void hideFAB(int delay) {
+		mFab.setVisibility(View.GONE);
+		postDelayed(new Runnable() {
+
+			@Override
+			public void run() {
+				mFab.setVisibility(View.VISIBLE);
+			}
+		}, delay);
 	}
 
 	@Override
@@ -137,6 +175,7 @@ public class Dashboard extends BaseFragment implements
 				.setOnClickListener(this);
 		dashboardListView = (ListView) calendarView
 				.findViewById(R.id.items_container);
+		mFab.listenTo(dashboardListView);
 		initAdapter();
 		if (mFilterDate == null) {
 			mFilterDate = date.getYear() + "-" + date.getMonth() + "-"
@@ -227,7 +266,16 @@ public class Dashboard extends BaseFragment implements
 					OControls.setGone(calendarView, R.id.dashboard_progress);
 					OControls.setVisible(calendarView, R.id.items_container);
 					OControls.setGone(calendarView, R.id.dashboard_no_items);
+					setHasSwipeRefreshView(calendarView, R.id.swipe_container,
+							Dashboard.this);
 				} else {
+					setHasSwipeRefreshView(calendarView,
+							R.id.dashboard_no_items, Dashboard.this);
+					if (db().isEmptyTable() && !syncRequested) {
+						syncRequested = true;
+						scope.main().requestSync(
+								CalendarEventProvider.AUTHORITY);
+					}
 					OControls.setGone(calendarView, R.id.dashboard_progress);
 					OControls.setVisible(calendarView, R.id.dashboard_no_items);
 				}
@@ -246,20 +294,53 @@ public class Dashboard extends BaseFragment implements
 		if (type.equals("seperator")) {
 			OControls.setText(view, R.id.list_seperator, row.getString("name"));
 		} else {
+
 			int icon = R.drawable.ic_action_phone;
+			String date = "false";
+			if (type.equals("phone_call")) {
+				date = row.getString("date");
+			}
 			if (type.equals("event")) {
 				icon = R.drawable.ic_action_event;
+				if (row.getString("allday").equals("false"))
+					date = row.getString("date_start");
 			}
 			if (type.equals("opportunity")) {
 				icon = R.drawable.ic_action_opportunities;
+				date = row.getString("date_action");
 			}
 			OControls.setImage(view, R.id.event_icon, icon);
 			OControls.setText(view, R.id.event_name, row.getString("name"));
 			if (row.getString("description").equals("false")) {
 				row.put("description", "");
 			}
+			if (!date.equals("false")) {
+				date = ODate.getFormattedDate(getActivity(), date, "HH:mm a");
+				OControls.setText(view, R.id.event_time, date);
+			}
 			OControls.setText(view, R.id.event_description,
 					row.getString("description"));
+
+			Boolean is_done = row.getString("is_done").equals("1");
+			if (is_done) {
+				int title_color = (is_done) ? Color.GRAY : Color
+						.parseColor("#414141");
+				int time_color = (is_done) ? Color.GRAY
+						: _c(R.color.theme_secondary_light);
+				int desc_color = (is_done) ? Color.GRAY : Color
+						.parseColor("#aaaaaa");
+				view.findViewById(R.id.event_icon).setBackgroundResource(
+						R.drawable.circle_mask);
+				OControls.setTextColor(view, R.id.event_name, title_color);
+				OControls.setTextColor(view, R.id.event_time, time_color);
+				OControls
+						.setTextColor(view, R.id.event_description, desc_color);
+				OControls.setTextViewStrikeThrough(view, R.id.event_name);
+				OControls.setTextViewStrikeThrough(view, R.id.event_time);
+				OControls
+						.setTextViewStrikeThrough(view, R.id.event_description);
+
+			}
 		}
 	}
 
@@ -314,6 +395,7 @@ public class Dashboard extends BaseFragment implements
 		builder.actionListener(this);
 		builder.setActionIcon(R.drawable.ic_action_edit);
 		builder.title(cr.getString(cr.getColumnIndex("name")));
+		builder.setOnSheetMenuCreateListener(this);
 		switch (type) {
 		case PhoneCall:
 			builder.menu(R.menu.menu_dashboard_phonecall);
@@ -334,8 +416,16 @@ public class Dashboard extends BaseFragment implements
 		dismissSheet(sheet);
 		if (extra instanceof ODataRow) {
 			switch (menu.getItemId()) {
+			case R.id.menu_fab_new_event:
+				startActivity(new Intent(getActivity(), CalendarDetail.class));
+				break;
 			case R.id.menu_fab_new_customer:
 				startActivity(new Intent(getActivity(), CustomerDetail.class));
+				break;
+			case R.id.menu_fab_new_lead:
+				Intent lead = new Intent(getActivity(), CRMDetail.class);
+				lead.putExtra(CRM.KEY_CRM_LEAD_TYPE, CRM.Keys.Leads.toString());
+				startActivity(lead);
 				break;
 			}
 
@@ -343,13 +433,13 @@ public class Dashboard extends BaseFragment implements
 			return;
 		}
 		Cursor cr = (Cursor) extra;
+		String is_done = cr.getString(cr.getColumnIndex("is_done"));
+		final OValues vals = new OValues();
+		vals.put("is_done", (is_done.equals("0")) ? 1 : 0);
+		String done_lable = (is_done.equals("0")) ? "done" : "undone";
+		final int row_id = cr.getInt(cr.getColumnIndex(OColumn.ROW_ID));
 		switch (menu.getItemId()) {
-		// Phone call menus
-		case R.id.menu_phonecall_call:
-			break;
 		case R.id.menu_phonecall_reschedule:
-			break;
-		case R.id.menu_phonecall_all_done:
 			break;
 		// Event menus
 		case R.id.menu_events_location:
@@ -358,12 +448,10 @@ public class Dashboard extends BaseFragment implements
 				Toast.makeText(getActivity(), "No location found !",
 						Toast.LENGTH_LONG).show();
 			} else {
-				MapUtil.redirectToMap(getActivity(), location);
+				IntentUtil.redirectToMap(getActivity(), location);
 			}
 			break;
 		case R.id.menu_events_reschedule:
-			break;
-		case R.id.menu_events_all_done:
 			break;
 		// Opportunity menus
 		case R.id.menu_opp_customer_location:
@@ -376,16 +464,74 @@ public class Dashboard extends BaseFragment implements
 				Toast.makeText(getActivity(), "No location found !",
 						Toast.LENGTH_LONG).show();
 			} else {
-				MapUtil.redirectToMap(getActivity(), address);
+				IntentUtil.redirectToMap(getActivity(), address);
 			}
 			break;
 		case R.id.menu_opp_call_customer:
+		case R.id.menu_phonecall_call:
+			int partner_id = cr.getInt(cr.getColumnIndex("partner_id"));
+			if (partner_id != 0) {
+				ResPartner pDb = new ResPartner(getActivity());
+				String contact = pDb.getContact(partner_id);
+				if (contact != null) {
+					IntentUtil.callIntent(getActivity(), contact);
+				} else {
+					Toast.makeText(getActivity(), "No contact found.",
+							Toast.LENGTH_LONG).show();
+				}
+			} else {
+				Toast.makeText(getActivity(), "No contact found.",
+						Toast.LENGTH_LONG).show();
+			}
 			break;
 		case R.id.menu_opp_lost:
 			break;
 		case R.id.menu_opp_won:
 			break;
 		case R.id.menu_opp_reschedule:
+			break;
+
+		// All done menu
+		case R.id.menu_phonecall_all_done:
+			final CRMPhoneCall phone_call = new CRMPhoneCall(getActivity());
+			phone_call.resolver().update(row_id, vals);
+			getLoaderManager().restartLoader(0, null, this);
+			SnackBar.get(getActivity()).text("Phone call marked " + done_lable)
+					.actionColor(_c(R.color.theme_primary_light))
+					.duration(SnackbarDuration.LENGTH_TOO_LONG)
+					.withAction("undo", new ActionClickListener() {
+
+						@Override
+						public void onActionClicked(SnackbarBuilder snackbar) {
+							vals.put("is_done", (vals.getString("is_done")
+									.equals("0")) ? 1 : 0);
+							mFab.setVisibility(View.VISIBLE);
+							phone_call.resolver().update(row_id, vals);
+							getLoaderManager().restartLoader(0, null,
+									Dashboard.this);
+						}
+					}).show();
+			hideFAB(6000);
+			break;
+		case R.id.menu_events_all_done:
+			db().resolver().update(row_id, vals);
+			getLoaderManager().restartLoader(0, null, this);
+			SnackBar.get(getActivity()).text("Event marked " + done_lable)
+					.actionColor(_c(R.color.theme_primary_light))
+					.duration(SnackbarDuration.LENGTH_TOO_LONG)
+					.withAction("undo", new ActionClickListener() {
+
+						@Override
+						public void onActionClicked(SnackbarBuilder snackbar) {
+							mFab.setVisibility(View.VISIBLE);
+							vals.put("is_done", (vals.getString("is_done")
+									.equals("0")) ? 1 : 0);
+							db().resolver().update(row_id, vals);
+							getLoaderManager().restartLoader(0, null,
+									Dashboard.this);
+						}
+					}).show();
+			hideFAB(6000);
 			break;
 		}
 	}
@@ -424,7 +570,7 @@ public class Dashboard extends BaseFragment implements
 				if (data_type.equals("event")) {
 				}
 				if (data_type.equals("opportunity")) {
-					CRMDetail crmDetail = new CRMDetail();
+					CRMDetailFrag crmDetail = new CRMDetailFrag();
 					Bundle bundle = new Bundle();
 					bundle.putInt(OColumn.ROW_ID, record_id);
 					bundle.putString(CRM.KEY_CRM_LEAD_TYPE,
@@ -435,5 +581,57 @@ public class Dashboard extends BaseFragment implements
 			}
 		}, 250);
 
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (dashboardListView != null)
+			onStart();
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		if (dashboardListView != null) {
+			getLoaderManager().destroyLoader(0);
+			getLoaderManager().restartLoader(0, null, this);
+		}
+	}
+
+	@Override
+	public void onRefresh() {
+		snackYouAreOffLine();
+		if (inNetwork()) {
+			scope.main().requestSync(CalendarEventProvider.AUTHORITY);
+		}
+	}
+
+	@Override
+	public void onStatusChange(Boolean refreshing) {
+		if (!refreshing)
+			hideRefreshingProgress();
+		else
+			setSwipeRefreshing(true);
+	}
+
+	@Override
+	public void onSheetMenuCreate(Menu menu, Object extras) {
+		Cursor cr = (Cursor) extras;
+		String type = cr.getString(cr.getColumnIndex("data_type"));
+		String is_done = cr.getString(cr.getColumnIndex("is_done"));
+		if (is_done.equals("0"))
+			return;
+		MenuItem mark_done = null;
+		if (type.equals("event")) {
+			mark_done = menu.findItem(R.id.menu_events_all_done);
+		}
+		if (type.equals("phone_call")) {
+			mark_done = menu.findItem(R.id.menu_phonecall_all_done);
+		}
+		if (mark_done != null) {
+			mark_done.setTitle("Mark Undone");
+			mark_done.setIcon(R.drawable.ic_action_mark_undone);
+		}
 	}
 }

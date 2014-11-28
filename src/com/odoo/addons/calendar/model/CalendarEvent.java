@@ -10,6 +10,7 @@ import com.odoo.orm.OValues;
 import com.odoo.orm.annotations.Odoo;
 import com.odoo.orm.types.OBoolean;
 import com.odoo.orm.types.ODateTime;
+import com.odoo.orm.types.OInteger;
 import com.odoo.orm.types.OText;
 import com.odoo.orm.types.OVarchar;
 import com.odoo.support.provider.OContentProvider;
@@ -26,28 +27,41 @@ public class CalendarEvent extends OModel {
 	@Odoo.api.v9alpha
 	OColumn start_date = new OColumn("Start Date", ODateTime.class)
 			.setParsePattern(ODate.DEFAULT_DATE_FORMAT);
+	@Odoo.api.v8
+	@Odoo.api.v9alpha
+	OColumn start_datetime = new OColumn("Start Date", ODateTime.class)
+			.setParsePattern(ODate.DEFAULT_FORMAT);
 	@Odoo.api.v7
 	OColumn date_deadline = new OColumn("Dead Line", ODateTime.class)
 			.setParsePattern(ODate.DEFAULT_FORMAT);
 	@Odoo.api.v8
 	@Odoo.api.v9alpha
 	OColumn stop_date = new OColumn("Stop Date", ODateTime.class)
-			.setParsePattern(ODate.DEFAULT_DATE_FORMAT);;
+			.setParsePattern(ODate.DEFAULT_DATE_FORMAT);
+	@Odoo.api.v8
+	@Odoo.api.v9alpha
+	OColumn stop_datetime = new OColumn("Stop Date", ODateTime.class)
+			.setParsePattern(ODate.DEFAULT_FORMAT);;
 	OColumn duration = new OColumn("Duration", OVarchar.class, 32);
 	OColumn allday = new OColumn("All Day", OBoolean.class);
 	OColumn description = new OColumn("Description", OText.class);
 	OColumn location = new OColumn("Location", OText.class);
 
-	@Odoo.Functional(store = true, depends = { "date", "start_date" }, method = "storeStartDate")
+	@Odoo.Functional(store = true, depends = { "date", "start_date",
+			"start_datetime" }, method = "storeStartDate")
 	OColumn date_start = new OColumn("Start Date", ODateTime.class)
 			.setLocalColumn();
 
-	@Odoo.Functional(store = true, depends = { "date_deadline", "stop_date" }, method = "storeStopDate")
+	@Odoo.Functional(store = true, depends = { "date_deadline", "stop_date",
+			"stop_datetime" }, method = "storeStopDate")
 	OColumn date_end = new OColumn("Start Date", ODateTime.class)
 			.setLocalColumn();
 
 	OColumn data_type = new OColumn("Data type", OVarchar.class, 34)
 			.setLocalColumn().setDefault("event");
+
+	OColumn is_done = new OColumn("Mark as Done", OInteger.class)
+			.setLocalColumn().setDefault("0");
 
 	public CalendarEvent(Context context) {
 		super(context, "calendar.event");
@@ -64,14 +78,18 @@ public class CalendarEvent extends OModel {
 		if (vals.contains("date")) {
 			return vals.getString("date");
 		}
-		return vals.getString("start_date");
+		if (!vals.getString("start_date").equals("false"))
+			return vals.getString("start_date");
+		return vals.getString("start_datetime");
 	}
 
 	public String storeStopDate(OValues vals) {
 		if (vals.contains("date_deadline")) {
 			return vals.getString("date_deadline");
 		}
-		return vals.getString("stop_date");
+		if (!vals.getString("stop_date").equals("false"))
+			return vals.getString("stop_date");
+		return vals.getString("stop_datetime");
 	}
 
 	@Override

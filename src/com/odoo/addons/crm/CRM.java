@@ -45,6 +45,8 @@ public class CRM extends BaseFragment implements OnRefreshListener,
 
 	// public static final String TAG = CRM.class.getSimpleName();
 	public static final String KEY_CRM_LEAD_TYPE = "crm_lead_type";
+	public static final String KEY_LEAD = "lead";
+	public static final String KEY_OPPORTUNITY = "opportunity";
 
 	public enum Keys {
 		Leads, Opportunities
@@ -158,7 +160,7 @@ public class CRM extends BaseFragment implements OnRefreshListener,
 			long id) {
 		Cursor cr = (Cursor) mAdapter.getItem(position);
 		int _id = cr.getInt(cr.getColumnIndex(OColumn.ROW_ID));
-		CRMDetail crmDetail = new CRMDetail();
+		CRMDetailFrag crmDetail = new CRMDetailFrag();
 		Bundle bundle = new Bundle();
 		bundle.putInt(OColumn.ROW_ID, _id);
 		bundle.putString(KEY_CRM_LEAD_TYPE, mCurrentKey.toString());
@@ -239,7 +241,7 @@ public class CRM extends BaseFragment implements OnRefreshListener,
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_crm_detail_create:
-			CRMDetail detail = new CRMDetail();
+			CRMDetailFrag detail = new CRMDetailFrag();
 			Bundle bundle = new Bundle();
 			bundle.putString(KEY_CRM_LEAD_TYPE, mCurrentKey.toString());
 			detail.setArguments(bundle);

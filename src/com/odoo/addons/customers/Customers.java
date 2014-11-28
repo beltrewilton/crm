@@ -37,7 +37,7 @@ import com.odoo.support.fragment.OnSearchViewChangeListener;
 import com.odoo.support.fragment.SyncStatusObserverListener;
 import com.odoo.support.listview.OCursorListAdapter;
 import com.odoo.support.listview.OCursorListAdapter.OnRowViewClickListener;
-import com.odoo.util.MapUtil;
+import com.odoo.util.IntentUtil;
 import com.odoo.util.OControls;
 import com.odoo.util.drawer.DrawerItem;
 
@@ -197,7 +197,7 @@ public class Customers extends BaseFragment implements OnRefreshListener,
 		switch (view.getId()) {
 		case R.id.user_location:
 			String address = ((ResPartner) db()).getAddress(cursor);
-			MapUtil.redirectToMap(getActivity(), address);
+			IntentUtil.redirectToMap(getActivity(), address);
 			break;
 		case R.id.call_user:
 			String phone = cursor.getString(cursor.getColumnIndex("phone"));

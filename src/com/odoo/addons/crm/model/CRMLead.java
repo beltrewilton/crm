@@ -106,6 +106,8 @@ public class CRMLead extends OModel {
 			.setLocalColumn();
 	OColumn data_type = new OColumn("Data type", OVarchar.class, 34)
 			.setLocalColumn().setDefault("opportunity");
+	OColumn is_done = new OColumn("Mark as Done", OInteger.class)
+			.setLocalColumn().setDefault("0");
 
 	public CRMLead(Context context) {
 		super(context, "crm.lead");

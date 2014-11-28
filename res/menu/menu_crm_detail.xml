@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <item
         android:id="@+id/menu_crm_detail_edit"
         android:icon="@drawable/ic_action_notes"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/label_edit">
+        android:title="@string/label_edit"
+        app:showAsAction="ifRoom|withText">
     </item>
     <item
         android:id="@+id/menu_crm_detail_delete"
         android:icon="@drawable/ic_action_remove"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/label_delete">
+        android:title="@string/label_delete"
+        app:showAsAction="ifRoom|withText">
     </item>
     <item
         android:id="@+id/menu_crm_detail_save"
         android:icon="@drawable/ic_action_done"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/label_save">
+        android:title="@string/label_save"
+        app:showAsAction="ifRoom|withText">
     </item>
 
 </menu>

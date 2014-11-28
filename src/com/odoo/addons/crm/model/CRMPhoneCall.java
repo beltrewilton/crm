@@ -11,6 +11,7 @@ import com.odoo.orm.OColumn;
 import com.odoo.orm.OColumn.RelationType;
 import com.odoo.orm.OModel;
 import com.odoo.orm.types.ODateTime;
+import com.odoo.orm.types.OInteger;
 import com.odoo.orm.types.OReal;
 import com.odoo.orm.types.OText;
 import com.odoo.orm.types.OVarchar;
@@ -32,13 +33,15 @@ public class CRMPhoneCall extends OModel {
 	OColumn categ_id = new OColumn("Category", CRMCaseCateg.class,
 			RelationType.ManyToOne);
 	OColumn date = new OColumn("Date", ODateTime.class)
-			.setParsePattern(ODate.DEFAULT_DATE_FORMAT);
+			.setParsePattern(ODate.DEFAULT_FORMAT);
 	OColumn opportunity_id = new OColumn("Lead/Opportunity", CRMLead.class,
 			RelationType.ManyToOne);
 	OColumn call_audio_file = new OColumn("recorded audio file",
 			OVarchar.class, 200).setLocalColumn();
 	OColumn data_type = new OColumn("Data type", OVarchar.class, 34)
 			.setLocalColumn().setDefault("phone_call");
+	OColumn is_done = new OColumn("Mark as Done", OInteger.class)
+			.setLocalColumn().setDefault("0");
 
 	public CRMPhoneCall(Context context) {
 		super(context, "crm.phonecall");

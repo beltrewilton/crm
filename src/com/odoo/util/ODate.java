@@ -242,4 +242,10 @@ public class ODate {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return dateFormat.format(utcCal.getTime());
 	}
+
+	public static String getFormattedDate(Context context, String full_date,
+			String displayPattern) {
+		return ODate.getDate(context, full_date, TimeZone.getDefault().getID(),
+				ODate.DEFAULT_FORMAT, displayPattern);
+	}
 }

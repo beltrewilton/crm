@@ -10,6 +10,7 @@ import android.database.MergeCursor;
 import android.net.Uri;
 
 import com.odoo.addons.calendar.model.CalendarEvent;
+import com.odoo.addons.crm.CRM;
 import com.odoo.addons.crm.model.CRMLead;
 import com.odoo.addons.crm.model.CRMPhoneCall;
 import com.odoo.orm.OColumn;
@@ -88,10 +89,11 @@ public class CalendarEventProvider extends OContentProvider {
 			CRMLead crm = new CRMLead(getContext());
 			MatrixCursor opp_seperator = new MatrixCursor(new String[] {
 					OColumn.ROW_ID, "data_type", "name" });
-			String crm_whr = "date(create_date) = ? or date(date_action) = ?";
+			String crm_whr = "(date(create_date) = ? or date(date_action) = ?) and type = ?";
 			List<String> crm_args = new ArrayList<String>();
 			crm_args.add(selectionArgs[0]);
 			crm_args.add(selectionArgs[0]);
+			crm_args.add(CRM.KEY_OPPORTUNITY);
 			if (selectionArgs.length > 2) {
 				crm_whr += " and (name like ? or description like ?)";
 				crm_args.add(selectionArgs[2]);

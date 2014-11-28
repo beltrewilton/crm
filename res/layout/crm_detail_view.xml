@@ -2,12 +2,15 @@
     xmlns:odoo="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#cccccc"
     android:clipToPadding="false"
-    android:fillViewport="true" >
+    android:fillViewport="true"
+    android:paddingTop="?attr/actionBarSize" >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/overlay_top_margin"
         android:orientation="vertical" >
 
         <odoo.controls.OForm
@@ -15,8 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="15dp"
-            android:background="#cccccc"
+            android:padding="5dp"
             android:visibility="gone"
             odoo:autoUIGenerate="true"
             odoo:model="crm.lead" >
@@ -112,10 +114,10 @@
             android:id="@+id/crmOppDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="15dp"
-            android:visibility="gone"
             android:background="#cccccc"
+            android:orientation="vertical"
+            android:padding="5dp"
+            android:visibility="gone"
             odoo:autoUIGenerate="true"
             odoo:model="crm.lead" >
 

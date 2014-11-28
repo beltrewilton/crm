@@ -99,6 +99,19 @@ public class ResPartner extends OModel {
 		return add;
 	}
 
+	public String getContact(int row_id) {
+		ODataRow row = select(row_id);
+		if (row != null) {
+			if (!row.getString("phone").equals("false")) {
+				return row.getString("phone");
+			}
+			if (!row.getString("mobile").equals("false")) {
+				return row.getString("mobile");
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public OContentProvider getContentProvider() {
 		return new PartnersProvider();
